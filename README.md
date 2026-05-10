@@ -9,6 +9,7 @@ Unified footer management for OpenClaw responses across multiple channels.
 | `openclaw-footer` | Router skill - routes to channel-specific footer skills |
 | `openclaw-feishu-footer` | Feishu card footer with body/note mode support |
 | `openclaw-telegram-footer` | Telegram text footer with usage metadata |
+| `openclaw-discord-footer` | Discord text footer — shares runtime patch with Telegram |
 
 ## Installation
 
@@ -16,6 +17,7 @@ Unified footer management for OpenClaw responses across multiple channels.
 # Install individual skills
 lark-cli skills add ~/.openclaw/workspace/.agents/skills/openclaw-feishu-footer
 lark-cli skills add ~/.openclaw/workspace/.agents/skills/openclaw-telegram-footer
+lark-cli skills add ~/.openclaw/workspace/.agents/skills/openclaw-discord-footer
 lark-cli skills add ~/.openclaw/workspace/.agents/skills/openclaw-footer
 ```
 
@@ -36,6 +38,10 @@ lark-cli skills add https://github.com/Clarice-jym/openclaw-footer
 ### Telegram
 - `footer check` - Check if patch is applied
 - `footer apply` - Apply the Telegram footer patch
+
+### Discord
+- `footer check` - Check if shared runtime patch is applied
+- `footer apply` - Apply the shared runtime patch (same as Telegram)
 
 ## Links
 
