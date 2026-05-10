@@ -1,0 +1,59 @@
+---
+name: openclaw-footer
+description: >
+  Unified OpenClaw reply footer management across all channels (Feishu and Telegram). Use when the user mentions any footer topic: footer missing, footer mode, footer config, footer setup, footer check, footer apply, footer install, footer patching, footer format, usage footer, card footer, note footer, body footer, footer visibility, footer token saving, footer after OpenClaw update, or configuring footer for a new channel. Routes to channel-specific workflows based on the conversation context: Feishu channel → openclaw-feishu-footer workflow (card note/body modes, --mode body/note, patch-feishu-footer.sh) · Telegram channel → openclaw-telegram-footer workflow (text footer with visual separator, patch-telegram-footer.sh) · User explicitly names a channel → route accordingly. Single entry point: footer status|note|body|check|apply|install shorthand works across all channels.
+---
+
+# OpenClaw Footer
+
+Unified dispatcher for reply footer management across all OpenClaw channels. Routes footer requests to the correct channel-specific sub-skill.
+
+## Routing logic
+
+1. **Check current channel** from the inbound metadata (`channel` field in conversation context).
+2. **Check if user named a channel explicitly:**
+   - Contains `飞书` / `feishu` / `lark` → Feishu workflow
+   - Contains `telegram` / `tg` → Telegram workflow
+3. **Route by active channel:**
+   - `feishu` → read and follow `openclaw-feishu-footer`
+   - `telegram` → read and follow `openclaw-telegram-footer`
+   - other/unknown → ask the user which channel
+4. **Read the sub-skill's SKILL.md** at `~/.openclaw/workspace/.agents/skills/openclaw-{channel}-footer/SKILL.md` and follow its workflow.
+
+## Channel-agnostic shortcuts (route automatically)
+
+| Shortcut | Action |
+|----------|--------|
+| `footer status` | Show current mode + patch status (channel-appropriate) |
+| `footer check` | Verify patch is still present |
+| `footer apply` | Re-apply patch if missing |
+| `footer install` | Full setup from scratch for this channel |
+
+## Feishu-specific
+
+- `footer note` → Feishu card note/metadata mode (token-saving, preferred)
+- `footer body` → Feishu visible footer in card body (fallback)
+
+## Telegram-specific
+
+- No extra shorthands; shared ones above cover it.
+
+## When this router triggers
+
+The sub-skills have channel-specific descriptions and will also match channel-specific queries. This router covers:
+
+- **Ambiguous queries:** "footer 不见了", "检查 footer", "footer 状态"
+- **Multi-channel:** "两个渠道都检查一下"
+- **First usage:** "footer 是什么 / 怎么配置"
+- **Explicit routing:** User says "飞书的 footer" or "Telegram 的 footer"
+
+Current footer format across Telegram and Feishu is aligned around:
+`Model | Session | Thinking | Context | Tokens | Usage`
+where `Usage` is a live provider quota summary and replaces the old `Time` / `CWD` fields.
+
+## Implementation notes
+
+- Sub-skills live at `~/.openclaw/workspace/.agents/skills/openclaw-feishu-footer/` and `.../openclaw-telegram-footer/`.
+- This router does not duplicate scripts or workflows — delegate entirely to sub-skills.
+- If OpenClaw updates break footers on both channels, fix one channel at a time: complete one before starting the next.
+- The inbound metadata has the channel info; use that for routing, not assumptions.
