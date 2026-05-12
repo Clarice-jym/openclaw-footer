@@ -279,6 +279,20 @@ elif old_fmt in text:
 else:
     print("skip: raw value storage — unrecognized pattern")
 
+# ---- 3b) fetch provider usage without old responseUsage gate ----
+old_usage_gate = """\t\tconst usageMode = normalizeOptionalString(entry.responseUsage)?.toLowerCase();
+\t\tif (usageMode && usageMode !== "off") meta.usage = await resolveFooterUsageSummary(meta.modelProvider, meta.model);"""
+new_usage_gate = """\t\tmeta.usage = await resolveFooterUsageSummary(meta.modelProvider, meta.model);"""
+
+if new_usage_gate in text:
+    print("already: provider usage without responseUsage gate")
+elif old_usage_gate in text:
+    text = text.replace(old_usage_gate, new_usage_gate, 1)
+    changed = True
+    print("patched: provider usage without responseUsage gate")
+else:
+    print("skip: provider usage gate — unrecognized pattern")
+
 # ---- 4) replace resolveCardNote body ----
 old_cardnote = '''async function resolveCardNote(prefixCtx, options = {}) {
 \tconst meta = await resolveFooterSessionMeta({

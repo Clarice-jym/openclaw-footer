@@ -13,14 +13,15 @@ The patch does these things in the Feishu monitor bundle:
 
 1. **Adds an ESM import** of `footer-shared.mjs` → `generateFooterLine()`
 2. **Stores raw numeric fields** (`_inputTokens`, `_outputTokens`, `_contextUsed`, `_contextLimit`, `_sessionId`, `_startedAt`, `_durationMs`, `_cwd`) alongside the formatted meta fields
-3. **Replaces `resolveCardNote`** body to call `generateFooterLine({..., style: "feishu"})` instead of hand-rolling the footer line
+3. **Fetches provider usage directly** via `resolveFooterUsageSummary(...)` without the old `entry.responseUsage` gate, matching Telegram/Discord behavior
+4. **Replaces `resolveCardNote`** body to call `generateFooterLine({..., style: "feishu"})` instead of hand-rolling the footer line
 
 **To change footer format across all channels:** edit `~/.openclaw/footer-shared.mjs` → restart Gateway. No re-patching needed.
 
 The footer format includes:
-`Model | Session: <id8> (YYYY-MM-DD) | Thinking | Context | Tokens | Usage | Time | CWD`
+`Model | Session: <id8> (YYYY-MM-DD) | Thinking | Context | Tokens | Usage`
 
-The usage summary (`Usage: ...`) is fetched from the same shared provider-usage module used by Telegram and Discord.
+Time and CWD are intentionally omitted. The usage summary (`Usage: ...`) is fetched from the same shared provider-usage module used by Telegram and Discord and formatted by the shared module, e.g. `Usage: 74%/4h, Week 80%/5d 8h`.
 
 ## Core commands
 

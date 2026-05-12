@@ -30,7 +30,7 @@ Example output:
 ... reply body text
 
 ────
-Model: gpt-5.5 | Session: 05a3adb2 (2026-05-08) | Thinking: high | Context: 27.3k / 272.0k (10%) | Tokens: in 36.2k out 2.1k | Usage: 5h 58% left ⏱️4h 4m | Week 95% left ⏱️1d 15h | Time: 31s | CWD: ~/workspace
+Model: gpt-5.5 | Session: 05a3adb2 (2026-05-08) | Thinking: high | Context: 27.3k / 272.0k (10%) | Tokens: in 36.2k out 2.1k | Usage: 58%/4h, Week 95%/1d 15h
 ```
 
 ## Shared module

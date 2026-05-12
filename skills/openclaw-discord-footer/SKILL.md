@@ -34,7 +34,7 @@ The patch does these things in the agent-runner runtime:
 
 ```
 ────────
-**Model:** deepseek-v4-flash | 🧠 medium | Session: abc12345 (2026-05-11) | Context: 10k / 200k (5%) | Tokens: in 5k out 1k | Usage: 5h 92% left ⏱️4h 21m | Week 99% left ⏱️6d 23h | ⏱ 30s | 📂 ~/project
+**Model:** deepseek-v4-flash | 🧠 medium | Session: abc12345 (2026-05-11) | Context: 10k / 200k (5%) | Tokens: in 5k out 1k | Usage: 92%/4h, Week 99%/6d 23h
 ```
 
 Key differences from Telegram:
@@ -45,8 +45,6 @@ Key differences from Telegram:
 | Model label | `**Model:** name` (bold) | `Model: name` (plain) |
 | Separator | ` | ` | ` | ` |
 | Thinking | `🧠 medium` | `Thinking: medium` |
-| Time | `⏱ 30s` | `Time: 30s` |
-| CWD | `📂 ~/project` | `CWD: ~/project` |
 | Location | DMs + channels | DMs (off by default unless requested) |
 | Error handling | try-catch everywhere, logs [footer] warnings | none (error = message failure) |
 | Usage support | Shared provider-usage summary when available | Shared provider-usage summary when available |
@@ -296,4 +294,4 @@ Then restart the gateway.
 - Prefer backup + `node --check` + Gateway status verification.
 - The patch is Discord-specific and does NOT affect Telegram or Feishu footer behavior.
 - Always wrap footer code in try-catch — footer failure should NEVER block message dispatch.
-- Keep `responseUsageMode` default `"off"` — let users opt in via `/usage tokens` for safe testing.
+- Provider usage can be fetched for footer display when available; do not reintroduce a manual `/usage tokens` gate for the shared footer.

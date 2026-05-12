@@ -31,19 +31,61 @@ function formatDuration(ms) {
   return `${seconds}s`;
 }
 
-function shortenPath(value) {
-  if (typeof value !== "string" || !value.trim()) return null;
-  const raw = value.trim();
-  const home = process.env.HOME;
-  if (home && raw === home) return "~";
-  if (home && raw.startsWith(`${home}/`)) return `~/${raw.slice(home.length + 1)}`;
-  return raw;
-}
-
 function stripModelProvider(value) {
   if (typeof value !== "string" || !value.trim()) return null;
   const raw = value.trim();
   return raw.includes("/") ? raw.split("/").filter(Boolean).pop() ?? raw : raw;
+}
+
+function parseResetMinutes(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const raw = value.trim();
+  if (raw === "now") return 0;
+  let totalMinutes = 0;
+  for (const match of raw.matchAll(/(\d+)\s*(d|h|m)\b/g)) {
+    const amount = Number(match[1]);
+    if (!Number.isFinite(amount)) continue;
+    if (match[2] === "d") totalMinutes += amount * 24 * 60;
+    if (match[2] === "h") totalMinutes += amount * 60;
+    if (match[2] === "m") totalMinutes += amount;
+  }
+  return totalMinutes > 0 ? totalMinutes : null;
+}
+
+function formatResetHours(value) {
+  const totalMinutes = parseResetMinutes(value);
+  if (totalMinutes === 0) return "0h";
+  if (totalMinutes === null) return typeof value === "string" ? value.trim().replace(/\s+/g, "") : null;
+  return `${Math.max(1, Math.round(totalMinutes / 60))}h`;
+}
+
+function formatResetDaysHours(value) {
+  const totalMinutes = parseResetMinutes(value);
+  if (totalMinutes === 0) return "0h";
+  if (totalMinutes === null) return typeof value === "string" ? value.trim() : null;
+  const totalHours = Math.max(1, Math.round(totalMinutes / 60));
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  if (days > 0 && hours > 0) return `${days}d ${hours}h`;
+  if (days > 0) return `${days}d`;
+  return `${hours}h`;
+}
+
+function formatUsageSummary(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  return value
+    .split("|")
+    .map((part, index) => {
+      const raw = part.trim();
+      const match = raw.match(/^(?:(\S+)\s+)?(\d+)%\s+left(?:\s+⏱️?\s*(.+))?$/u);
+      if (!match) return raw;
+      const label = match[1];
+      const percent = match[2];
+      const reset = label === "Week" ? formatResetDaysHours(match[3]) : formatResetHours(match[3]);
+      const prefix = index === 0 && label !== "Week" ? "" : `${label ?? ""} `;
+      return `${prefix}${percent}%${reset ? `/${reset}` : ""}`.trim();
+    })
+    .join(", ");
 }
 
 // ---- Channel field label specs ----
@@ -52,20 +94,14 @@ const FIELD_SPECS = {
   telegram: {
     model: (v) => (v ? `Model: ${v}` : null),
     thinking: (v) => (v ? `Thinking: ${v}` : null),
-    time: (v) => (v ? `Time: ${v}` : null),
-    cwd: (v) => (v ? `CWD: ${v}` : null),
   },
   discord: {
     model: (v) => (v ? `**Model:** ${v}` : null),
     thinking: (v) => (v ? `\u{1F9E0} ${v}` : null),
-    time: (v) => (v ? `\u23F1 ${v}` : null),
-    cwd: (v) => (v ? `\u{1F4C2} ${v}` : null),
   },
   feishu: {
     model: (v) => (v ? `Model: ${v}` : null),
     thinking: (v) => (v ? `Thinking: ${v}` : null),
-    time: (v) => (v ? `Time: ${v}` : null),
-    cwd: (v) => (v ? `CWD: ${v}` : null),
   },
 };
 
@@ -145,12 +181,13 @@ export function generateFooterLine(params) {
     );
   }
 
-  // Usage
-  if (typeof params.usageSummary === "string" && params.usageSummary.trim()) {
-    parts.push(`Usage: ${params.usageSummary.trim()}`);
+  // Provider/model usage quota summary
+  const usageSummary = formatUsageSummary(params.usageSummary);
+  if (usageSummary) {
+    parts.push(`Usage: ${usageSummary}`);
   }
 
-  // (Time and CWD intentionally omitted per user preference)
+  // Time and CWD intentionally omitted per user preference.
 
   return parts.length ? parts.join(" | ") : null;
 }
