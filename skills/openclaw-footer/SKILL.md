@@ -20,7 +20,7 @@ Unified dispatcher for reply footer management across all OpenClaw channels. Rou
    - `telegram` → read and follow `openclaw-telegram-footer`
    - `discord` → read and follow `openclaw-discord-footer`
    - other/unknown → ask the user which channel
-4. **Read the sub-skill's SKILL.md** at `~/.openclaw/workspace/.agents/skills/openclaw-{channel}-footer/SKILL.md` and follow its workflow.
+4. **Read the sub-skill's SKILL.md** at `/home/momo/.openclaw/workspace/skills/openclaw-{channel}-footer/SKILL.md` and follow its workflow.
 
 ## Channel-agnostic shortcuts (route automatically)
 
@@ -42,10 +42,10 @@ Unified dispatcher for reply footer management across all OpenClaw channels. Rou
 
 ## Discord-specific
 
-- Discord has its OWN independent agent-runner runtime patch (`patch-discord-footer.sh`) — separate from Telegram.
-- `discord footer check` → verify the Discord-specific patch is present.
-- `discord footer apply` → apply via `patch-discord-footer.sh`.
-- Discord footer format differs from Telegram: bold `**Model:**` label, ` | ` separator, emoji fields (🧠 ⏱ 📂), NO `────` divider.
+- Discord has its OWN `patch-discord-footer.sh` which **delegates to `patch-telegram-footer.sh`** since the two channels share the same runtime and footer module.
+- `discord footer check` → verify the Discord-specific markers via delegated script.
+- `discord footer apply` → apply via `patch-discord-footer.sh` (delegates to `patch-telegram-footer.sh`).
+- Discord footer format differs from Telegram: bold `**Model:**` label, emoji fields (🧠 ⏱ 📂), `────────` divider. All defined in `footer-shared.mjs` `FIELD_SPECS.discord`.
 
 ## When this router triggers
 
@@ -58,7 +58,11 @@ The sub-skills have channel-specific descriptions and will also match channel-sp
 
 ## Implementation notes
 
-- Sub-skills live at `~/.openclaw/workspace/.agents/skills/openclaw-feishu-footer/`, `.../openclaw-telegram-footer/`, and `.../openclaw-discord-footer/`.
+- Sub-skills live at `/home/momo/.openclaw/workspace/skills/openclaw-feishu-footer/`, `.../openclaw-telegram-footer/`, and `.../openclaw-discord-footer/`.
+- **Canonical footer content** is defined in `skills/openclaw-footer/assets/footer-shared.mjs` — this is the single source of truth.
+- At runtime, the module lives at `~/.openclaw/footer-shared.mjs` and is imported by all three channel bundles.
+- The patch scripts (`--apply`) automatically copy the asset to `~/.openclaw/footer-shared.mjs` if missing.
+- To change footer format: edit `skills/openclaw-footer/assets/footer-shared.mjs`, run `patch-*-footer.sh --apply`, restart Gateway.
 - This router does not duplicate scripts or workflows — delegate entirely to sub-skills.
 - If OpenClaw updates break footers on both channels, fix one channel at a time: complete one before starting the next.
 - The inbound metadata has the channel info; use that for routing, not assumptions.

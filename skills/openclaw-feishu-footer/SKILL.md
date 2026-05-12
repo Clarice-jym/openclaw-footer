@@ -7,14 +7,20 @@ description: Manage the local OpenClaw Feishu reply footer customization. Use wh
 
 ## Purpose
 
-Maintain the local Feishu footer customization for OpenClaw replies. The footer is final-only and includes:
+Maintain the local Feishu footer customization for OpenClaw replies. Since 2026-05-12, the Feishu card note footer is driven by the shared `~/.openclaw/footer-shared.mjs` module, same as Telegram and Discord.
 
-`Model | Session: <id8> (YYYY-MM-DD) | Thinking | Context | Tokens | Usage`
+The patch does these things in the Feishu monitor bundle:
 
-The `Usage` field is a live provider quota summary such as:
-`5h 58% left ⏱4h 4m · Week 5% left ⏱1d 15h`
+1. **Adds an ESM import** of `footer-shared.mjs` → `generateFooterLine()`
+2. **Stores raw numeric fields** (`_inputTokens`, `_outputTokens`, `_contextUsed`, `_contextLimit`, `_sessionId`, `_startedAt`, `_durationMs`, `_cwd`) alongside the formatted meta fields
+3. **Replaces `resolveCardNote`** body to call `generateFooterLine({..., style: "feishu"})` instead of hand-rolling the footer line
 
-Use the bundled script if the runtime script is missing or stale.
+**To change footer format across all channels:** edit `~/.openclaw/footer-shared.mjs` → restart Gateway. No re-patching needed.
+
+The footer format includes:
+`Model | Session: <id8> (YYYY-MM-DD) | Thinking | Context | Tokens | Usage | Time | CWD`
+
+The usage summary (`Usage: ...`) is fetched from the same shared provider-usage module used by Telegram and Discord.
 
 ## Core commands
 
@@ -32,6 +38,8 @@ Supported operations:
 ~/.openclaw/scripts/patch-feishu-footer.sh --mode status  # current footer mode
 ~/.openclaw/scripts/patch-feishu-footer.sh --mode note    # recommended: Feishu card note/metadata, token-saving
 ~/.openclaw/scripts/patch-feishu-footer.sh --mode body    # fallback only: visible footer in card body
+~/.openclaw/scripts/patch-feishu-footer.sh --check-duplicate-footer # verify upstream duplicate-footer fix is present
+~/.openclaw/scripts/patch-feishu-footer.sh --fix-duplicate-footer   # apply upstream duplicate-footer fix when this issue appears
 ```
 
 Mode file:
@@ -74,6 +82,14 @@ Gateway restart can abort the current run or leave status briefly `deactivating`
 
 - `Runtime: running`
 - `Connectivity probe: ok`
+
+## On-demand duplicate-footer troubleshooting
+
+If the user reports that Feishu shows the footer twice, then read:
+
+`references/duplicate-footer.md`
+
+Do not read that reference during normal footer work when there is no duplicate-footer symptom.
 
 ## When more detail is needed
 
