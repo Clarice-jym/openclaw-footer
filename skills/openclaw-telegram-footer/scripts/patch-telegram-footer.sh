@@ -70,6 +70,7 @@ IMPORT_MARKER = 'import { generateFooterLine } from "file:///home/momo/.openclaw
 TG_WRAPPER_MARKER  = 'generateFooterLine({ ...params, style: "telegram" })'
 DC_WRAPPER_MARKER  = 'generateFooterLine({ ...params, style: "discord" })'
 SESSION_CONTEXT_MARKER = 'contextUsed: typeof activeSessionEntry?.totalTokens === "number" && Number.isFinite(activeSessionEntry.totalTokens) ? activeSessionEntry.totalTokens : usagePromptTokens'
+CWD_MARKER = 'cwd: activeSessionEntry?.cwd ?? followupRun.run.workspaceDir ?? process.cwd()'
 
 def check():
     ok = True
@@ -87,6 +88,9 @@ def check():
         ok = False
     if SESSION_CONTEXT_MARKER not in s:
         print("runtime missing: footer session-context source patch")
+        ok = False
+    if CWD_MARKER not in s:
+        print("runtime missing: footer cwd source patch")
         ok = False
     if ok:
         print("Patch status: present")
@@ -209,6 +213,8 @@ old_context_callsite = "\t\tconst channel = sessionCtx.OriginatingChannel ?? ses
 new_context_callsite = "\t\tconst channel = sessionCtx.OriginatingChannel ?? sessionCtx.Surface ?? sessionCtx.Provider ?? activeSessionEntry?.channel ?? \"\";\n\t\tactiveSessionEntry = refreshSessionEntryFromStore({\n\t\t\tstorePath,\n\t\t\tsessionKey,\n\t\t\tfallbackEntry: activeSessionEntry,\n\t\t\tactiveSessionStore\n\t\t});\n\t\tif (hasNonzeroUsage(usage)) {"
 old_context_fields = "\t\t\t\tcontextUsed: usagePromptTokens,\n\t\t\t\tcontextLimit: contextTokensUsed,"
 new_context_fields = "\t\t\t\tcontextUsed: typeof activeSessionEntry?.totalTokens === \"number\" && Number.isFinite(activeSessionEntry.totalTokens) ? activeSessionEntry.totalTokens : usagePromptTokens,\n\t\t\t\tcontextLimit: typeof activeSessionEntry?.contextTokens === \"number\" && Number.isFinite(activeSessionEntry.contextTokens) ? activeSessionEntry.contextTokens : contextTokensUsed,"
+old_cwd_field = "\t\t\t\tusageSummary: providerUsageSummary,\n\t\t\t\tchannel"
+new_cwd_field = "\t\t\t\tusageSummary: providerUsageSummary,\n\t\t\t\tcwd: activeSessionEntry?.cwd ?? followupRun.run.workspaceDir ?? process.cwd(),\n\t\t\t\tchannel"
 
 if SESSION_CONTEXT_MARKER in s:
     print("already: footer session-context source patch")
@@ -226,6 +232,15 @@ else:
     else:
         print("skip: footer context fields — unrecognized callsite")
 
+if CWD_MARKER in s:
+    print("already: footer cwd source patch")
+elif old_cwd_field in s:
+    s = s.replace(old_cwd_field, new_cwd_field, 1)
+    changed = True
+    print("patched: footer cwd source")
+else:
+    print("skip: footer cwd field — unrecognized callsite")
+
 # ---- final checks ----
 check_ok = True
 if IMPORT_MARKER not in s:
@@ -239,6 +254,9 @@ if DC_WRAPPER_MARKER not in s:
     check_ok = False
 if SESSION_CONTEXT_MARKER not in s:
     print("ERROR: footer session-context source patch not present after apply")
+    check_ok = False
+if CWD_MARKER not in s:
+    print("ERROR: footer cwd source patch not present after apply")
     check_ok = False
 if not check_ok:
     raise SystemExit("Patch incomplete after apply; inspect manually.")

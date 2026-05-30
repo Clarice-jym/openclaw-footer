@@ -16,6 +16,7 @@ The patch does these things in the agent-runner runtime:
 3. **Replaces `formatDiscordFooterLine`** with a thin wrapper: `generateFooterLine({ ...params, style: "discord" })`
 4. **Patches the footer callsite** so `Context` uses refreshed session-store `totalTokens / contextTokens`, not provider prompt usage (`input + cacheRead + cacheWrite`).
 5. The old helper functions (token amount, date, duration, path, model) remain in the bundle as dead code.
+6. The canonical footer fields are now `Model | CWD | Thinking | Context | Tokens | Usage` (Discord keeps channel-specific ordering/styling).
 
 **To change footer format across all channels:** edit `~/.openclaw/footer-shared.mjs` → restart Gateway. No re-patching needed.
 
@@ -31,7 +32,7 @@ Example output:
 ... reply body text
 
 ────
-Model: gpt-5.5 | Session: 05a3adb2 (2026-05-08) | Thinking: high | Context: 27.3k / 272.0k (10%) | Tokens: in 36.2k out 2.1k | Usage: 58%/4h, Week 95%/1d 15h
+Model: gpt-5.5 | CWD: ~/.openclaw/workspace | Thinking: high | Context: 27.3k / 272.0k (10%) | Tokens: in 36.2k out 2.1k | Usage: 58%/4h, Week 95%/1d 15h
 ```
 
 ## Shared module

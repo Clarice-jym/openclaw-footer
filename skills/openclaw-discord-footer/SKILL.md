@@ -19,11 +19,11 @@ The patch (via `patch-telegram-footer.sh`) does these things in the agent-runner
 
 **To change footer format across all channels:** edit `~/.openclaw/footer-shared.mjs` → restart Gateway. No re-patching needed.
 
-**Discord-specific formatting** (bold Model, emoji 🧠 ⏱ 📂, 8-dash divider) is defined in `footer-shared.mjs` `FIELD_SPECS.discord`.
+**Discord-specific formatting** (bold Model, `🧠` thinking field, `CWD: ...`, 8-dash divider) is defined in `footer-shared.mjs` `FIELD_SPECS.discord`.
 
 The patch does these things in the agent-runner runtime:
 
-1. **Adds Discord-specific helper functions** (`formatDiscordFooterLine`, etc.) — same structure as Telegram helpers but with ` | ` separator, bold `**Model:**` label, and emoji field decorators (🧠, ⏱, 📂).
+1. **Adds Discord-specific helper functions** (`formatDiscordFooterLine`, etc.) — same structure as Telegram helpers but with ` | ` separator, bold `**Model:**` label, and Discord-specific field ordering.
 2. **Makes `formatResponseUsageLine` channel-aware** — dispatches to `formatDiscordFooterLine` when `channel === "discord"`, otherwise falls through to `formatTelegramFooterLine`. **Both paths wrapped in try-catch** so footer errors never block message dispatch.
 3. **Makes `appendUsageLine` channel-aware** — Discord gets `────────` divider with ` | ` separator using bold `**Model:**` label, Telegram keeps the `────` divider with plain label. **Entire function wrapped in try-catch** for safety.
 4. **Adds channel resolution** at the call site — `const channel = sessionCtx.OriginatingChannel ?? ...` declared **outside** the `if (responseUsageMode)` block to avoid ReferenceError.
@@ -35,7 +35,7 @@ The patch does these things in the agent-runner runtime:
 
 ```
 ────────
-**Model:** deepseek-v4-flash | 🧠 medium | Session: abc12345 (2026-05-11) | Context: 10k / 200k (5%) | Tokens: in 5k out 1k | Usage: 92%/4h, Week 99%/6d 23h
+**Model:** deepseek-v4-flash | 🧠 medium | CWD: ~/.openclaw/workspace | Context: 10k / 200k (5%) | Tokens: in 5k out 1k | Usage: 92%/4h, Week 99%/6d 23h
 ```
 
 Key differences from Telegram:
@@ -46,6 +46,7 @@ Key differences from Telegram:
 | Model label | `**Model:** name` (bold) | `Model: name` (plain) |
 | Separator | ` | ` | ` | ` |
 | Thinking | `🧠 medium` | `Thinking: medium` |
+| Working directory | `CWD: ~/project` after thinking | `CWD: ~/project` before thinking |
 | Location | DMs + channels | DMs (off by default unless requested) |
 | Error handling | try-catch everywhere, logs [footer] warnings | none (error = message failure) |
 | Usage support | Shared provider-usage summary when available | Shared provider-usage summary when available |
@@ -104,7 +105,7 @@ chmod +x ~/.openclaw/scripts/patch-discord-footer.sh
 
 - Since 2026-05-12, Discord footer content is defined in `~/.openclaw/footer-shared.mjs` with `style: "discord"`.
 - The `patch-discord-footer.sh` script **delegates to `patch-telegram-footer.sh`** because both channels share the same agent-runner runtime and footer module.
-- Discord-specific formatting (bold **Model:**, 🧠, ⏱, 📂, `────────` divider) is in `FIELD_SPECS.discord` in the shared module.
+- Discord-specific formatting (bold **Model:**, `🧠`, `CWD: ...`, `────────` divider) is in `FIELD_SPECS.discord` in the shared module.
 - All footer code is wrapped in **try-catch**. If anything fails, the warning goes to gateway logs (`[footer] ...`) and the message is sent without footer.
 - The `channel` variable is declared **outside** the usage block to prevent `ReferenceError: channel is not defined`.
 - For Discord **group channels** (like #elmo), you also need `messages.groupChat.visibleReplies = true` in the Gateway config, otherwise the agent's reply (including the footer) won't appear in the channel.
@@ -117,7 +118,7 @@ chmod +x ~/.openclaw/scripts/patch-discord-footer.sh
 
 ## Exact code to insert (legacy)
 
-With the shared module approach (2026-05-12+), manual code insertion is no longer needed. Use `patch-discord-footer.sh --apply` instead, which delegates to `patch-telegram-footer.sh`. The sections below are kept for reference only.
+With the shared module approach (2026-05-12+), manual code insertion is no longer needed. Use `patch-discord-footer.sh --apply` instead, which delegates to `patch-telegram-footer.sh`. The sections below are kept for historical reference only and do **not** define the current canonical footer fields.
 
 ```javascript
 // Discord footer helpers
@@ -171,9 +172,8 @@ function formatDiscordFooterLine(params) {
 	const thinking = typeof params.thinking === "string" && params.thinking ? params.thinking : null;
 	if (model) parts.push(`**Model:** ${model}`);
 	if (thinking) parts.push(`\u{1F9E0} ${thinking}`);
-	const sessionId = typeof params.sessionId === "string" && params.sessionId ? params.sessionId.slice(0, 8) : typeof params.sessionKey === "string" ? params.sessionKey.slice(0, 8) : null;
-	const sessionDate = formatDiscordFooterDate(params.startedAt);
-	if (sessionId) parts.push(`Session: ${sessionId}${sessionDate ? ` (${sessionDate})` : ""}`);
+	const cwd = shortenDiscordFooterPath(params.cwd);
+	if (cwd) parts.push(`CWD: ${cwd}`);
 	const contextUsed = formatDiscordFooterTokenAmount(params.contextUsed);
 	const contextLimit = formatDiscordFooterTokenAmount(params.contextLimit);
 	if (contextUsed && contextLimit) {

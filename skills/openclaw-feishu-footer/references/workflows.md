@@ -13,7 +13,7 @@
 - `note` is the recommended/default mode. Footer is sent as Feishu card `note`/metadata, visible in streaming cards after the `reserveNote` fix, and does not pollute assistant正文/context.
 - `body` is only a temporary fallback if a future Feishu/OpenClaw change hides card notes again. It appends footer to final card body after `---`, which is visible but may cost context tokens later.
 - Plain text replies append footer in text because they have no card metadata.
-- Current footer fields are aligned with Telegram: `Model | Session | Thinking | Context | Tokens | Usage`.
+- Current footer fields are aligned with Telegram: `Model | CWD | Thinking | Context | Tokens | Usage`.
 - `Usage` is live provider quota summary text such as `5h 58% left ⏱4h 4m · Week 5% left ⏱1d 15h`.
 
 ## User shorthand commands

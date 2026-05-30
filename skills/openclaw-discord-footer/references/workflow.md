@@ -2,7 +2,7 @@
 
 ## Implementation target
 
-Discord has its **OWN** independent agent-runner runtime patch (`patch-discord-footer.sh`). Unlike the previous shared approach, Discord now uses channel-aware dispatch with Discord-specific formatting: bold `**Model:**` label, ` | ` separator, emoji field decorators (🧠 ⏱ 📂), and NO `────` divider.
+Discord has its **OWN** independent agent-runner runtime patch (`patch-discord-footer.sh`). Unlike the previous shared approach, Discord now uses channel-aware dispatch with Discord-specific formatting: bold `**Model:**` label, ` | ` separator, `🧠` thinking field, `CWD: ...`, and no Telegram-style `────` divider.
 
 ## Why separate
 
@@ -24,13 +24,13 @@ Six modifications in the runtime bundle + one in the thinking module:
 To verify the footer is working on Discord:
 1. Ensure the patch is applied: `~/.openclaw/scripts/patch-discord-footer.sh --check`
 2. Send a message through Discord DM or channel
-3. Check the output for the footer line with `**Model:** ... | 🧠 ... | Session: ...`
+3. Check the output for the footer line with `**Model:** ... | 🧠 ... | CWD: ...`
 
 ## Discord-specific considerations
 
 - **Message limit:** Discord messages cap at 2000 characters. Very long replies may cause the footer to be truncated. The patch does not add truncation logic.
 - **Markdown:** Discord supports bold `**text**`, so `**Model:**` renders as bold in the footer.
-- **Format:** `**Model:** name | 🧠 medium | Session: abc12345 (2026-05-10) | Context: 10k / 200k (5%) | Tokens: in 5k out 1k | ⏱ 30s | 📂 ~/project`
+- **Format:** `**Model:** name | 🧠 medium | CWD: ~/project | Context: 10k / 200k (5%) | Tokens: in 5k out 1k | Usage: 92%/4h, Week 99%/6d 23h`
 
 ## Troubleshooting
 

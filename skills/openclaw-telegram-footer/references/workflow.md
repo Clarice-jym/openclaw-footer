@@ -15,13 +15,13 @@ Two modifications are made:
 ## Desired line
 
 ```text
-Model: gpt-5.5 | Session: 05a3adb2 (2026-05-08) | Thinking: high | Context: 27.3k / 272.0k (10%) | Tokens: in 36.2k out 2.1k | Usage: 5h 58% left ⏱4h 4m · Week 5% left ⏱1d 15h
+Model: gpt-5.5 | CWD: ~/.openclaw/workspace | Thinking: high | Context: 27.3k / 272.0k (10%) | Tokens: in 36.2k out 2.1k | Usage: 5h 58% left ⏱4h 4m · Week 5% left ⏱1d 15h
 ```
 
 ## Field sources
 
 - Model: current run `modelUsed`, shortened to basename after `/`.
-- Session: current run `followupRun.run.sessionId`, first 8 chars, date from run start.
+- CWD: current working directory from run/session context, shortened with `~` when under HOME.
 - Context: current run context used/limit when available.
 - Tokens: current response usage input/output.
 - Usage: live provider quota summary resolved from the current provider.
@@ -32,7 +32,7 @@ Model: gpt-5.5 | Session: 05a3adb2 (2026-05-08) | Thinking: high | Context: 27.3
 ... reply body text
 
 ────
-Model: gpt-5.5 | Session: 05a3adb2 (2026-05-08) | Thinking: high | Context: 27.3k / 272.0k (10%) | Tokens: in 36.2k out 2.1k | Usage: 5h 58% left ⏱4h 4m · Week 5% left ⏱1d 15h
+Model: gpt-5.5 | CWD: ~/.openclaw/workspace | Thinking: high | Context: 27.3k / 272.0k (10%) | Tokens: in 36.2k out 2.1k | Usage: 5h 58% left ⏱4h 4m · Week 5% left ⏱1d 15h
 ```
 
 ## Markers (used by script for --check)

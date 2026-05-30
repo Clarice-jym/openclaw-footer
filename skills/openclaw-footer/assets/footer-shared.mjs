@@ -2,6 +2,7 @@
 // Shared footer content generation for all OpenClaw channels.
 // Edit this file to change footer format across Telegram, Discord, and Feishu.
 // After editing: restart Gateway to apply.
+// Current canonical field set: Model | CWD | Thinking | Context | Tokens | Usage
 
 // ---- Shared formatting helpers ----
 
@@ -29,6 +30,15 @@ function formatDuration(ms) {
   const seconds = totalSeconds % 60;
   if (minutes > 0) return `${minutes}m ${seconds}s`;
   return `${seconds}s`;
+}
+
+function shortenPath(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const raw = value.trim();
+  const home = process.env.HOME;
+  if (home && raw === home) return "~";
+  if (home && raw.startsWith(`${home}/`)) return `~/${raw.slice(home.length + 1)}`;
+  return raw;
 }
 
 function stripModelProvider(value) {
@@ -114,9 +124,7 @@ const FIELD_SPECS = {
  * @param {Object} params.usage          - { input, output } token counts
  * @param {string} params.model          - model identifier (e.g. "deepseek/deepseek-v4-pro")
  * @param {string} [params.thinking]     - thinking level (e.g. "high", "medium")
- * @param {string} [params.sessionId]    - session id (first 8 chars used)
- * @param {string} [params.sessionKey]   - fallback session key
- * @param {number} [params.startedAt]    - session start timestamp (ms)
+ * @param {string} [params.cwd]          - workspace directory path
  * @param {number} [params.contextUsed]  - context tokens used
  * @param {number} [params.contextLimit] - context window limit
  * @param {string} [params.usageSummary] - pre-formatted provider usage summary
@@ -141,6 +149,9 @@ export function generateFooterLine(params) {
   const modelPart = spec.model(model);
   if (modelPart) parts.push(modelPart);
 
+  const cwd = shortenPath(params.cwd);
+  if (cwd && style !== "discord") parts.push(`CWD: ${cwd}`);
+
   // Thinking
   const thinking =
     typeof params.thinking === "string" && params.thinking
@@ -149,18 +160,7 @@ export function generateFooterLine(params) {
   const thinkingPart = spec.thinking(thinking);
   if (thinkingPart) parts.push(thinkingPart);
 
-  // Session
-  const sessionId =
-    typeof params.sessionId === "string" && params.sessionId
-      ? params.sessionId.slice(0, 8)
-      : typeof params.sessionKey === "string"
-        ? params.sessionKey.slice(0, 8)
-        : null;
-  const sessionDate = formatDate(params.startedAt);
-  if (sessionId)
-    parts.push(
-      `Session: ${sessionId}${sessionDate ? ` (${sessionDate})` : ""}`
-    );
+  if (cwd && style === "discord") parts.push(`CWD: ${cwd}`);
 
   // Context
   const contextUsed = formatTokenAmount(params.contextUsed);
@@ -187,7 +187,7 @@ export function generateFooterLine(params) {
     parts.push(`Usage: ${usageSummary}`);
   }
 
-  // Time and CWD intentionally omitted per user preference.
+  // Session/date and time intentionally omitted per user preference.
 
   return parts.length ? parts.join(" | ") : null;
 }

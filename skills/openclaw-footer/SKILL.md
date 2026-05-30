@@ -45,7 +45,7 @@ Unified dispatcher for reply footer management across all OpenClaw channels. Rou
 - Discord has its OWN `patch-discord-footer.sh` which **delegates to `patch-telegram-footer.sh`** since the two channels share the same runtime and footer module.
 - `discord footer check` → verify the Discord-specific markers via delegated script.
 - `discord footer apply` → apply via `patch-discord-footer.sh` (delegates to `patch-telegram-footer.sh`).
-- Discord footer format differs from Telegram: bold `**Model:**` label, emoji fields (🧠 ⏱ 📂), `────────` divider. All defined in `footer-shared.mjs` `FIELD_SPECS.discord`.
+- Discord footer format differs from Telegram: bold `**Model:**` label, `🧠` thinking field, and `────────` divider. All defined in `footer-shared.mjs` `FIELD_SPECS.discord`.
 
 ## When this router triggers
 
