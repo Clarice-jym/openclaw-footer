@@ -61,6 +61,7 @@ The sub-skills have channel-specific descriptions and will also match channel-sp
 - Sub-skills live at `/home/momo/.openclaw/workspace/skills/openclaw-feishu-footer/`, `.../openclaw-telegram-footer/`, and `.../openclaw-discord-footer/`.
 - **Canonical footer content** is defined in `skills/openclaw-footer/assets/footer-shared.mjs` — this is the single source of truth.
 - At runtime, the module lives at `~/.openclaw/footer-shared.mjs` and is imported by all three channel bundles.
+- **Context source policy:** footer `Context` should represent session/store context pressure (`session totalTokens / contextTokens`) for compression management, not provider prompt usage (`input + cacheRead + cacheWrite`). Telegram/Discord enforce this at the agent-runner callsite; Feishu resolves it from the session store before calling the shared module.
 - The patch scripts (`--apply`) automatically copy the asset to `~/.openclaw/footer-shared.mjs` if missing.
 - To change footer format: edit `skills/openclaw-footer/assets/footer-shared.mjs`, run `patch-*-footer.sh --apply`, restart Gateway.
 - This router does not duplicate scripts or workflows — delegate entirely to sub-skills.

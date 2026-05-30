@@ -13,7 +13,8 @@ The patch (via `patch-telegram-footer.sh`) does these things in the agent-runner
 
 1. **Adds an ESM import** of `footer-shared.mjs` → `generateFooterLine()`
 2. **Replaces `formatDiscordFooterLine`** with a thin wrapper: `generateFooterLine({ ...params, style: "discord" })`
-3. The channel-aware `formatResponseUsageLine` dispatches to the Discord wrapper when `channel === "discord"`.
+3. **Patches the footer callsite** so `Context` uses refreshed session-store `totalTokens / contextTokens`, matching `/status`-style context pressure rather than provider prompt usage.
+4. The channel-aware `formatResponseUsageLine` dispatches to the Discord wrapper when `channel === "discord"`.
 4. **`appendUsageLine`** is channel-aware: Discord gets `────────` divider, Telegram gets `────`.
 
 **To change footer format across all channels:** edit `~/.openclaw/footer-shared.mjs` → restart Gateway. No re-patching needed.

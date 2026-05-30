@@ -14,7 +14,8 @@ The patch does these things in the agent-runner runtime:
 1. **Adds an ESM import** of `footer-shared.mjs` → `generateFooterLine()`
 2. **Replaces `formatTelegramFooterLine`** with a thin wrapper: `generateFooterLine({ ...params, style: "telegram" })`
 3. **Replaces `formatDiscordFooterLine`** with a thin wrapper: `generateFooterLine({ ...params, style: "discord" })`
-4. The old helper functions (token amount, date, duration, path, model) remain in the bundle as dead code.
+4. **Patches the footer callsite** so `Context` uses refreshed session-store `totalTokens / contextTokens`, not provider prompt usage (`input + cacheRead + cacheWrite`).
+5. The old helper functions (token amount, date, duration, path, model) remain in the bundle as dead code.
 
 **To change footer format across all channels:** edit `~/.openclaw/footer-shared.mjs` → restart Gateway. No re-patching needed.
 

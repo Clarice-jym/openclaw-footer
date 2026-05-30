@@ -13,6 +13,7 @@ The patch does these things in the Feishu monitor bundle:
 
 1. **Adds an ESM import** of `footer-shared.mjs` → `generateFooterLine()`
 2. **Stores raw numeric fields** (`_inputTokens`, `_outputTokens`, `_contextUsed`, `_contextLimit`, `_sessionId`, `_startedAt`, `_durationMs`, `_cwd`) alongside the formatted meta fields
+   - `_contextUsed/_contextLimit` should come from the session store, prioritizing `totalTokens / contextTokens`, so Feishu matches the `/status`-style context pressure used for compression management.
 3. **Fetches provider usage directly** via `resolveFooterUsageSummary(...)` without the old `entry.responseUsage` gate, matching Telegram/Discord behavior
 4. **Replaces `resolveCardNote`** body to call `generateFooterLine({..., style: "feishu"})` instead of hand-rolling the footer line
 
